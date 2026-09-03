@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي كبّس واربح مع بحّار 🤖⚓</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        #confettiCanvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #38bdf8;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 15px;
+        }
+
+        .luck-box {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .luck-title { font-size: 12px; color: #94a3b8; }
+        .luck-status { font-size: 13px; font-weight: 700; color: #fbbf24; }
+
+        .letters-box {
+            background: #020617;
+            border: 2px solid #3b82f6;
+            border-radius: 16px;
+            padding: 8px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .letter {
+            font-size: 24px;
+            font-weight: 900;
+            color: #38bdf8;
+            width: 42px;
+            height: 42px;
+            background: #0f172a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #38bdf8;
+            transition: all 0.1s ease;
+        }
+
+        .letter.active {
+            background: #22c55e;
+            color: #fff;
+            border-color: #4ade80;
+            box-shadow: 0 0 20px #22c55e;
+            transform: scale(1.1);
+        }
+
+        /* شبكة البزل */
+        .puzzle-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            max-height: 260px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #38bdf8;
+            margin: 0 auto 15px auto;
+            background: #020617;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 3px;
+            padding: 3px;
+        }
+
+        .puzzle-tile {
+            position: relative;
+            background: linear-gradient(135deg, #0284c7, #1e3a8a);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* غطاء القطعة قبل الكشف */
+        .puzzle-tile::after {
+            content: "⚓";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #38bdf8;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        /* عند تكشف القطعة */
+        .puzzle-tile.revealed::after {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+
+        .click-btn {
+            background: linear-gradient(135deg, #1877f2, #0284c7);
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(24, 119, 242, 0.4);
+            transition: transform 0.05s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .click-btn:active { transform: scale(0.95); }
+
+        .counter-info {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .counter-number { color: #f59e0b; font-weight: 900; font-size: 16px; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 2px solid #22c55e;
+            border-radius: 20px;
+            padding: 25px 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .modal h2 { color: #4ade80; margin-bottom: 10px; font-size: 24px; }
+        .modal p { color: #e2e8f0; font-size: 14px; margin-bottom: 18px; line-height: 1.5; }
+
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .modal-btn {
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <div class="container">
+        <div class="logo-title">مؤسسة بحّار ⚓</div>
+        <div class="subtitle">كبّس واجمع قطع البزل واكتشف المفاجأة!</div>
+
+        <div class="luck-box">
+            <span class="luck-title">⚡ حالة السحب الحالية:</span>
+            <span class="luck-status" id="luckStatus">جاري التكبيس... 🎲</span>
+        </div>
+
+        <div class="letters-box">
+            <div class="letter" id="l1">؟</div>
+            <div class="letter" id="l2">؟</div>
+            <div class="letter" id="l3">؟</div>
+            <div class="letter" id="l4">؟</div>
+        </div>
+
+        <div class="puzzle-box" id="puzzleGrid"></div>
+
+        <button class="click-btn" id="clickBtn">
+            كبّس الآن 🚀
+        </button>
+
+        <div class="counter-info">
+            مجموع الكبسات: <span class="counter-number" id="globalCounter">0</span>
+        </div>
+    </div>
+
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 مبروك الفوز! 🎉</h2>
+            <p>اكتملت لوحة البزل وتشكّلت كلمة (ب ح ا ر)! حصلت على الدورة المجانية من مؤسسة بحّار! 🤖⚓</p>
+            
+            <form id="winForm" onsubmit="submitWinner(event)">
+                <input type="text" id="winnerName" placeholder="الاسم الثلاثي" required>
+                <input type="tel" id="winnerPhone" placeholder="رقم الهاتف / الواتساب" required>
+                <button type="submit" class="modal-btn">تأكيد وإرسال عبر WhatsApp 📲</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const randomChars = ["ت", "ث", "ج", "خ", "د", "ذ", "ز", "س", "ش", "ص", "ض", "ط", "ظ", "ع", "غ", "ف", "ق", "ك", "ل", "م", "ن", "هـ", "و", "ي"];
+            const luckPhrases = [
+                "احتمالية الفوز: قيد الانتظار 💤",
+                "قطع البزل تتكشف! 🧩",
+                "واصل التكبيس! 🎲",
+                "الشفرة تقترب من الاكتشاف! 🎯"
+            ];
+
+            // المحتوى المخبأ تحت البزل (رموز وحروف تشكل لوحة)
+            const tileContents = ["🤖", "⚓", "⭐", "🚀", "🎓", "💡", "⚙️", "🧩", "ب", "ح", "ا", "ر", "🏆", "🔥", "✨", "🎉"];
+
+            const WHATSAPP_NUMBER = "963952723356"; 
+            const WINNING_TARGET = 500; 
+            const TOTAL_TILES = 16; 
+
+            let clicks = 0;
+            let revealedOrder = [];
+
+            // ترتيب عشوائي لكشف القطع
+            function generateRandomOrder() {
+                let array = Array.from({length: TOTAL_TILES}, (_, i) => i);
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            revealedOrder = generateRandomOrder();
+
+            function createPuzzle() {
+                const grid = document.getElementById('puzzleGrid');
+                grid.innerHTML = '';
+                for (let i = 0; i < TOTAL_TILES; i++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'puzzle-tile';
+                    tile.id = `tile-${i}`;
+                    tile.innerText = tileContents[i];
+                    grid.appendChild(tile);
+                }
+            }
+
+            function updateUI() {
+                document.getElementById('globalCounter').innerText = clicks;
+
+                const l1 = document.getElementById('l1');
+                const l2 = document.getElementById('l2');
+                const l3 = document.getElementById('l3');
+                const l4 = document.getElementById('l4');
+
+                let countToReveal = Math.floor((clicks / WINNING_TARGET) * TOTAL_TILES);
+                if (countToReveal > TOTAL_TILES) countToReveal = TOTAL_TILES;
+
+                for (let i = 0; i < TOTAL_TILES; i++) {
+                    const tileIndex = revealedOrder[i];
+                    const tile = document.getElementById(`tile-${tileIndex}`);
+                    if (tile) {
+                        if (i < countToReveal) {
+                            tile.classList.add('revealed');
+                        } else {
+                            tile.classList.remove('revealed');
+                        }
+                    }
+                }
+
+                if (clicks >= WINNING_TARGET) {
+                    l1.innerText = "ب"; l1.className = "letter active";
+                    l2.innerText = "ح"; l2.className = "letter active";
+                    l3.innerText = "ا"; l3.className = "letter active";
+                    l4.innerText = "ر"; l4.className = "letter active";
+
+                    setTimeout(() => {
+                        startConfetti();
+                        document.getElementById('winModal').style.display = 'flex';
+                    }, 300);
+
+                } else {
+                    l1.innerText = getRandomChar();
+                    l2.innerText = getRandomChar();
+                    l3.innerText = getRandomChar();
+                    l4.innerText = getRandomChar();
+
+                    if (clicks % 10 === 0) {
+                        document.getElementById('luckStatus').innerText = luckPhrases[Math.floor(Math.random() * luckPhrases.length)];
+                    }
+                }
+            }
+
+            function getRandomChar() {
+                return randomChars[Math.floor(Math.random() * randomChars.length)];
+            }
+
+            // زر التكبيس المباشر
+            document.getElementById('clickBtn').addEventListener('click', function() {
+                if (clicks < WINNING_TARGET) {
+                    clicks++;
+                    updateUI();
+                }
+            });
+
+            window.submitWinner = function(e) {
+                e.preventDefault();
+                const name = document.getElementById('winnerName').value;
+                const phone = document.getElementById('winnerPhone').value;
+
+                const text = encodeURIComponent(`السلام عليكم، أنا الفائز بتحدي التكبيس وتجميع البزل!\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n🎯 الكبسات: ${clicks}`);
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, '_blank');
+                document.getElementById('winModal').style.display = 'none';
+            };
+
+            function startConfetti() {
+                const canvas = document.getElementById('confettiCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const particles = Array.from({ length: 80 }).map(() => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    color: ['#38bdf8', '#22c55e', '#f59e0b', '#ec4899'][Math.floor(Math.random() * 4)],
+                    size: Math.random() * 8 + 4,
+                    speed: Math.random() * 3 + 2
+                }));
+
+                function render() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => {
+                        p.y += p.speed;
+                        if (p.y > canvas.height) p.y = -10;
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(p.x, p.y, p.size, p.size);
+                    });
+                    requestAnimationFrame(render);
+                }
+                render();
+            }
+
+            createPuzzle();
+            updateUI();
+        })();
+    </script>
+</body>
+</html>
